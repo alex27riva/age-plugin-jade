@@ -7,7 +7,7 @@ age -r age1jade1q2shxdc... -o secret.age secret.txt      # offline, no device ne
 age -d -i jade-identity.txt secret.age > secret.txt       # Jade asks you to confirm
 ```
 
-> **Status: experimental.** Tested end-to-end with age v1.3.2 against a protocol-accurate mock device. It has **not yet been run on real Jade hardware** and has not been audited. Keep a backup recipient (see below) until you trust it.
+> **Status: experimental.** Tested end-to-end with age v1.3.2 against a protocol-accurate mock device, and on real Jade hardware with a testnet wallet. It has **not been audited**. Keep a backup recipient (see below) until you trust it.
 
 ## How it works
 
