@@ -59,25 +59,31 @@ tidy: ## Tidy and verify modules
 
 ci: tidy lint test ## What CI runs
 
+# Each platform gets its own directory so the binary keeps its plain name:
+# dist/$(BINARY)_$(VERSION)_linux_amd64/$(BINARY).
 dist: ## Cross-compile for every platform in PLATFORMS
 	@rm -rf $(DIST_DIR) && mkdir -p $(DIST_DIR)
 	@for p in $(PLATFORMS); do \
 	   os=$${p%/*}; arch=$${p#*/}; \
-	   out=$(DIST_DIR)/$(BINARY)_$(VERSION)_$${os}_$${arch}; \
+	   out=$(DIST_DIR)/$(BINARY)_$(VERSION)_$${os}_$${arch}/$(BINARY); \
 	   [ "$$os" = "windows" ] && out=$$out.exe || true; \
 	   echo "  -> $$out"; \
 	   CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
 	     $(GO) build $(GO_BUILD_FLAGS) -ldflags '$(LDFLAGS)' -o $$out $(CMD_PATH) || exit 1; \
 	 done
 
+# Archives hold the bare binary at their root. Only the archives are summed:
+# a `*` glob would also match SHA256SUMS, which the redirect has already created.
 release: dist ## Archive the binaries and write checksums
-	@cd $(DIST_DIR) && for f in $(BINARY)_*; do \
-	   case $$f in \
-	     *.exe) zip -q $${f%.exe}.zip $$f && rm $$f ;; \
-	     *)     tar czf $$f.tar.gz $$f && rm $$f ;; \
-	   esac; \
+	@cd $(DIST_DIR) && for d in $(BINARY)_*/; do \
+	   d=$${d%/}; \
+	   case $$d in \
+	     *_windows_*) (cd $$d && zip -q ../$$d.zip $(BINARY).exe) ;; \
+	     *)           tar czf $$d.tar.gz -C $$d $(BINARY) ;; \
+	   esac || exit 1; \
+	   rm -r $$d; \
 	 done; \
-	 (sha256sum * 2>/dev/null || shasum -a 256 *) > SHA256SUMS
+	 (sha256sum $(BINARY)_* 2>/dev/null || shasum -a 256 $(BINARY)_*) > SHA256SUMS
 	@ls -1 $(DIST_DIR)
 
 clean: ## Remove build artefacts
