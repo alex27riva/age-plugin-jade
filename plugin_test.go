@@ -137,7 +137,7 @@ func startMock(t *testing.T, passphrase string) (*mockjade.Jade, string) {
 }
 
 func session(port string) *deviceSession {
-	return &deviceSession{port: port, network: "mainnet", msg: func(string) {}}
+	return &deviceSession{port: port, msg: func(string) {}}
 }
 
 func TestMockDevice(t *testing.T) {
@@ -198,12 +198,22 @@ func TestMockWrongPassphrase(t *testing.T) {
 	}
 }
 
+func TestMockNetworkAutoDetect(t *testing.T) {
+	j, port := startMock(t, "")
+	j.Networks = "TEST"
+	if _, err := session(port).PubKey("ssh://age@jade", 0); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestMockNetworkMismatch(t *testing.T) {
 	j, port := startMock(t, "")
 	j.Networks = "TEST"
-	_, err := session(port).PubKey("ssh://age@jade", 0)
+	sess := session(port)
+	sess.network = "mainnet"
+	_, err := sess.PubKey("ssh://age@jade", 0)
 	var je *jade.Error
-	if !errors.As(err, &je) || je.Code != jade.CodeNetworkMismatch || !strings.Contains(err.Error(), "testnet") {
+	if !errors.As(err, &je) || je.Code != jade.CodeNetworkMismatch || !strings.Contains(err.Error(), "set it to testnet") {
 		t.Fatalf("got %v", err)
 	}
 }

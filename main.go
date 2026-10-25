@@ -40,7 +40,7 @@ Options:
     --port PORT     Serial port, or tcp:HOST:PORT for the Jade emulator.
                     Default: auto-detect, or $JADE_PORT.
     --network NET   mainnet or testnet, as the Jade wallet is locked to.
-                    Default: mainnet, or $JADE_NETWORK.
+                    Default: $JADE_NETWORK, or what the Jade reports.
 
 Then encrypt and decrypt with age as usual:
     age -r age1jade1... -o secret.age secret.txt
@@ -73,9 +73,6 @@ func main() {
 	network := *networkFlag
 	if network == "" {
 		network = os.Getenv("JADE_NETWORK")
-	}
-	if network == "" {
-		network = "mainnet"
 	}
 
 	if sm := fs.Lookup("age-plugin").Value.String(); sm != "" {

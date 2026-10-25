@@ -13,7 +13,7 @@ import (
 // requests. One session is shared by all identities in a plugin run.
 type deviceSession struct {
 	port    string
-	network string
+	network string       // "mainnet" or "testnet"; empty picks what the Jade is locked to
 	msg     func(string) // how to show progress to the user
 
 	c        *jade.Client
@@ -46,17 +46,30 @@ func (d *deviceSession) connect() error {
 	case "LOCKED", "UNSAVED":
 		d.msg("enter your PIN on the Jade")
 	}
-	if err := c.Auth(d.network); err != nil {
+	network := d.network
+	if network == "" {
+		network = networkFor(info.Networks)
+	}
+	if err := c.Auth(network); err != nil {
 		c.Close()
 		var je *jade.Error
 		if errors.As(err, &je) && je.Code == jade.CodeNetworkMismatch {
-			return fmt.Errorf("%w (this Jade is locked to %s networks: try --network testnet or JADE_NETWORK=testnet)", err, info.Networks)
+			return fmt.Errorf("%w (this Jade is locked to %s networks: unset JADE_NETWORK to auto-detect, or set it to %s)", err, info.Networks, networkFor(info.Networks))
 		}
 		return fmt.Errorf("unlocking Jade: %w", err)
 	}
 	d.c = c
 	d.verified = map[string]bool{}
 	return nil
+}
+
+// networkFor maps get_version_info's JADE_NETWORKS ("MAIN", "TEST" or "ALL")
+// to the network auth_user accepts.
+func networkFor(networks string) string {
+	if networks == "TEST" {
+		return "testnet"
+	}
+	return "mainnet"
 }
 
 func keyID(k *jadeKey) string { return fmt.Sprintf("%d:%s", k.Index, k.URI) }

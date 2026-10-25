@@ -56,7 +56,9 @@ age -e -i jade.txt -o x.age x.txt              # identity file works as a recipi
 | Setting | Flag | Env (also used when age runs the plugin) | Default |
 |---|---|---|---|
 | Serial port, or `tcp:HOST:PORT` | `--port` | `JADE_PORT` | auto-detect by USB VID/PID |
-| Network the wallet is locked to | `--network` | `JADE_NETWORK` | `mainnet` (use `testnet` for test wallets) |
+| Network the wallet is locked to | `--network` | `JADE_NETWORK` | auto-detect from the device |
+
+**Network.** Jade wallets are locked to mainnet or testnet on first use, and unlocking with the other one fails. The plugin asks the device which network it is locked to and uses that, so testnet wallets work with no configuration. Set `--network` or `JADE_NETWORK` (`mainnet` or `testnet`) only to override the detected value.
 
 ## Security model — read this
 
