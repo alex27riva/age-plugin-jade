@@ -129,3 +129,7 @@ jade/                minimal Jade CBOR-RPC client (serial/TCP, auth_user + PIN s
 internal/mockjade/   software Jade for tests
 cmd/jade-mock/       mock as a standalone TCP server
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
